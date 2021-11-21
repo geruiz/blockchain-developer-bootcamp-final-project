@@ -1,0 +1,20 @@
+{
+  "name": "market-site",
+  "description": "Final proyect to blockchain developer bootcamp",
+  "version": "1.0.0",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "truffle compile",
+    "deploy": "truffle deploy --reset",
+    "test": "truffle test"
+  },
+  "keywords": [],
+  "author": "Germán Ruiz",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.3.2"
+  }
+}
