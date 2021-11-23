@@ -1,0 +1,86 @@
+<div id="main">
+    <div class="row text-center mb-3">
+        <div class="col-lg-7 mx-auto">
+            <h4 class="display-4">Create a new publication</h4>
+        </div>
+    </div>
+
+    <div class="col-10 offset-1">
+        <form id="entry" onsubmit="createPublication(event); return false;">
+            <div class="mb-3 text-center">
+                <img id="image" src="./img/not-selected.png" width="360" height="360" />
+            </div>
+            <div class="mb-3 row">
+                <div class="col-4">
+                    <label for="formFile" class="form-label">Select one image</label>
+                </div>
+                <div class="col-8">
+                    <input class="form-control" type="file" id="fileSelection" onchange="selectFile(event)">
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <div class="col-4">
+                    <label for="title" class="form-label">Title</label>
+                </div>
+                <div class="col-8">
+                    <input id="title" type="text" class="form-control" size="30" maxlength="50" required/>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <div class="col-4">
+                    <label for="description" class="form-label">Description</label>
+                </div>
+                <div class="col-8">
+                    <textarea id="description" class="form-control" rows="8" cols="40" required></textarea>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <div class="col-4">
+                    <label for="initialValue" class="form-label">Initial Value</label>
+                </div>
+                <div class="col-8">
+                    <input id="initialValue" type="number" class="form-control" size="30" maxlength="30" required/>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <div class="col-4">
+                    <label for="maxValue" class="form-label">Max Value</label>
+                </div>
+                <div class="col-8">
+                    <input id="maxValue" type="number" class="form-control" size="30" maxlength="30" required/>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function selectFile(e) {
+        var fr = new FileReader();
+        fr.onload = function(){
+            $("img#image")[0].src = fr.result;
+        }
+        fr.readAsDataURL(e.target.files[0]);
+    }   
+
+    function createPublication(e) {
+        e.preventDefault();
+        var obj = {
+            title : $("input#title").val(),
+            description : $("textarea#description").val(),
+            image : $("img#image").attr("src")
+        };
+        const initialValue = $("input#initialValue").val();
+        const maxValue = $("input#maxValue").val();
+        
+        marketSite.publishItem(obj, parseInt(initialValue, 10), parseInt(maxValue, 10))
+            .then(x => showSuccessMessage("Transaction created!"))
+            .catch(showErrorMessage);
+    }
+
+</script>

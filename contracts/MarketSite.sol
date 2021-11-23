@@ -2,6 +2,9 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+//import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract MarketSite is Ownable {
 
@@ -37,7 +40,7 @@ contract MarketSite is Ownable {
   }
 
   // Item lists and count
-  mapping (uint => Item) public items;
+  mapping (uint => Item) private items;
   uint public itemsCount;
 
   // Publish values, defined at moment of create the contract
@@ -52,6 +55,8 @@ contract MarketSite is Ownable {
   event ValueChanged(uint itemId, uint betValue, address betAddress);
 
   event ItemSold(uint itemId);
+
+  event ItemPaid(uint itemId);
 
   /**
    * Modifiers
@@ -133,26 +138,21 @@ contract MarketSite is Ownable {
   }
 
   /**
-   * Getter function (used in tests)
+   * Getter function.
    */
   function getItem(uint _itemId) public view 
     existsItem(_itemId)
-    returns (string memory ipfsHash, address owner, uint actualValue, uint state, address offerAddress) {
+    returns (uint itemId, string memory ipfsHash, address owner, uint finishDate,
+        uint actualValue, uint state, address offerAddress) {
 
       Item memory item = items[_itemId];
+      itemId = _itemId;
       ipfsHash = item.ipfsHash;
       owner = item.owner;
+      finishDate = item.finishDate;
       actualValue = item.actualValue;
       state = uint(item.state);
       offerAddress = item.actualOffer.who;
-  }
-
-  function getPublishedItem(uint _itemId) public view 
-    existsItem(_itemId)
-    returns (Item memory) {
-
-      Item memory item = items[_itemId];
-      return item;
   }
 
   /**
@@ -188,7 +188,7 @@ contract MarketSite is Ownable {
           address payable prevOwner = item.actualOffer.who;
           uint prevBet = item.actualOffer.maxBet;
 
-          item.actualValue = item.actualOffer.maxBet + 1;
+          item.actualValue = Math.max(item.actualOffer.maxBet + 1, _value);
           item.actualOffer.who = payable(msg.sender);
           item.actualOffer.maxBet = msg.value;
 
@@ -203,7 +203,7 @@ contract MarketSite is Ownable {
       }
   }
 
-  function claimFounds(uint _itemId) public payable
+  function claimFounds(uint _itemId) public 
     existsItem(_itemId)
     isSold(_itemId)
     isItemOwner(_itemId) {
@@ -221,5 +221,6 @@ contract MarketSite is Ownable {
         (success, ) = items[_itemId].actualOffer.who.call{value: diff}("");
         require(success, "Transfer failed.");
       }
+      emit ItemPaid(_itemId);
   }
 }

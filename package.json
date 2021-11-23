@@ -1,6 +1,6 @@
 {
   "name": "market-site",
-  "description": "Final proyect to blockchain developer bootcamp",
+  "description": "Final proyect for blockchain developer bootcamp",
   "version": "1.0.0",
   "main": "truffle-config.js",
   "directories": {
@@ -9,6 +9,7 @@
   "scripts": {
     "build": "truffle compile",
     "deploy": "truffle deploy --reset",
+    "start": "servor app index.html 8000",
     "test": "truffle test"
   },
   "keywords": [],
@@ -16,5 +17,8 @@
   "license": "ISC",
   "dependencies": {
     "@openzeppelin/contracts": "^4.3.2"
+  },
+  "devDependencies": {
+    "servor": "^4.0.2"
   }
 }

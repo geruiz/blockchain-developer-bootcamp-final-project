@@ -1,0 +1,153 @@
+<div id="main">
+
+    <div class="row text-center mb-3">
+        <div class="col-lg-7 mx-auto">
+            <h4 class="display-4">Product List</h4>
+        </div>
+    </div>
+
+    <div id="loading" class="row" data-bind="visible: !loaded">
+        <div class="col-lg-10">
+        Loading items from network....
+        </div>
+    </div>
+
+    <div class="row" data-bind="visible: loaded">
+        <!-- ko if: items().length == 0 -->
+        <div class="col-lg-10 mx-auto">
+            There are not published products. 
+        </div>
+        <!-- /ko -->
+        <div class="col-lg-10 mx-auto">
+            <ul class="list-group shadow">   
+
+        <!-- ko foreach: items -->
+            <li class="list-group-item" data-bind="css: { 'data-updated': updated }">
+                <div class="row p-3">
+                    <div class="col-5">
+                        <img class="card-img" data-bind="attr: { src: ipfs.image }">
+                    </div>
+                    <div class="col-6">
+                        <h5 class="mt-0 font-weight-bold mb-2" data-bind="text: ipfs.title"></h5>
+                        <p class="font-italic text-muted mb-0 small" data-bind="text: ipfs.description"></p>
+
+                        <p><span data-bind="if: item.state == marketSite.State.Published">Initial Price</span>
+                           <span data-bind="if: item.state == marketSite.State.Offered">Actual Price</span>
+                           <span data-bind="if: item.state > marketSite.State.Offered">Sold Price</span>
+                            (in wei): 
+                            <span data-bind="text: item.actualValue"></span>
+                            <!-- ko if: item.state > marketSite.State.Published -->
+                            offered by
+                            <span data-bind="text: $parent.compactAddress(item.offerAddress)"></span> <span data-bind="if: $parent.isOwn(item.offerAddress)"> (you!)</span>
+                            <!-- /ko -->
+                       </p>
+                       <p data-bind="if: item.state <= marketSite.State.Offered">
+                           End date: <span data-bind="text: $parent.endDate(item)"></span>
+                       </p>
+                        <!-- ko if: $parent.canOffer(item) -->
+                        <a href="#" class="btn btn-primary" data-bind="click: $parent.createOffer">Offer</a>
+                        <!-- /ko -->
+                        <p>Published by: <span data-bind="text: $parent.compactAddress(item.owner)"></span> <span data-bind="if: $parent.isOwn(item.owner)"> (you!)</span></p>
+                    </div>
+                </div>
+            </li>
+        <!-- /ko -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="mb-3"></div>
+
+<!-- Modal -->
+<div class="modal fade" id="buyForm" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form>
+                <input type="hidden" id="itemId" value=""/>
+                <div class="row gy-2">
+                    <div class="col-8">
+                        <div>
+                            <label for="amount" class="col-form-label">Amount</label>
+                        </div>
+                        <div id="amountHelpInline" class="form-text">
+                            Value to paid for the item.
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <input type="text" id="amount" class="form-control" aria-describedby="amountHelpInline">
+                    </div>
+                </div>
+                <div class="row gy-2">
+                    <div class="col-8">
+                        <div>
+                            <label for="maxAmount" class="col-form-label">Maximum Amount</label>
+                        </div>
+                        <div id="maxAmountHelpInline" class="form-text">
+                            Maximum amount to be paid.  In case of not winning, the value will be refunded.
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <input type="text" id="maxAmount" class="form-control" aria-describedby="maxAmountHelpInline">
+                    </div>
+                </div>
+            </form>     
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary">Accept</button>
+        </div>
+      </div>
+    </div>
+</div>
+<script>
+    var viewModel = new PageViewModel(marketSite);
+    viewModel.createOffer = function(elem) {
+        var modalElement = $("#buyForm"),
+            modalView = bootstrap.Modal.getOrCreateInstance(modalElement[0]);
+        modalElement.find("#itemId").val(elem.item.itemId);
+        modalElement.find("#amount").val(elem.item.actualValue);
+        modalElement.find("#maxAmount").val("");
+        modalView.show();
+    };
+    ko.applyBindings(viewModel, $("#main")[0]);
+
+    function changeAddressHandler(e, data) {
+        viewModel.actualAddress((data.connected  && data.address) ? data.address : "");
+    }
+
+    $("#buyForm button.btn-primary").on("click", () => {
+        var main = $("#buyForm"),
+            itemId = main.find("#itemId").val(),
+            amount = main.find("#amount").val(),
+            maxAmount = main.find("#maxAmount").val(),
+            modalView = bootstrap.Modal.getOrCreateInstance(main[0]);
+
+            marketSite.createOffer(parseInt(itemId), parseInt(amount), parseInt(maxAmount))
+            .then(tx => {
+                modalView.hide();
+                showSuccessMessage("Transaction created");
+                return tx;
+            })
+            .catch(e => {
+                showErrorMessage(e, main.find(".modal-body"));
+            });
+    });
+
+    $("body").on('changeAddress', changeAddressHandler);
+    viewModel.load();
+
+    // clean pane and disconnect knockout
+    $("body").on('replacePane', function () {
+        viewModel.unload();
+        $("body").off('changeAddress', changeAddressHandler)
+            .off('replacePane');
+        ko.cleanNode($("#main")[0]);
+        viewModel = undefined;
+    });
+</script>

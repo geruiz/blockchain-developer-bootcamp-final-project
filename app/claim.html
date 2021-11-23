@@ -1,0 +1,82 @@
+<div id="main">
+
+    <div class="row text-center mb-3">
+        <div class="col-lg-7 mx-auto">
+            <h4 class="display-4">Claim founds</h4>
+        </div>
+        <div class="text">
+            Here you can see your sold items and claim the payded value.
+        </div>
+    </div>
+
+    <div id="loading" class="row" data-bind="visible: !loaded">
+        <div class="col-lg-10">
+        Loading items from network....
+        </div>
+    </div>
+
+    <div class="row" data-bind="visible: loaded">
+        <!-- ko if: items().length == 0 -->
+        <div class="col-lg-10 mx-auto">
+            There are not items. 
+        </div>
+        <!-- /ko -->
+        <div class="col-lg-10 mx-auto">
+            <ul class="list-group shadow">   
+
+        <!-- ko foreach: items -->
+            <li class="list-group-item">
+                <div class="row p-3">
+                    <div class="col-lg-4">
+                        <img class="card-img" data-bind="attr: { src: ipfs.image }">
+                    </div>
+                    <div class="col-lg-6">
+                        <h5 class="mt-0 font-weight-bold mb-2" data-bind="text: ipfs.title"></h5>
+                        <p class="font-italic text-muted mb-0 small" data-bind="text: ipfs.description"></p>
+
+                        <p><span data-bind="if: item.state > marketSite.State.Offered">Sold Price</span>
+                            (in wei): 
+                            <span data-bind="text: item.actualValue"></span>
+                            buid by
+                            <span data-bind="text: $parent.compactAddress(item.offerAddress)"></span>
+                       </p>
+                       <!-- ko if: item.state == marketSite.State.Finished -->
+                       <a href="#" class="btn btn-primary" data-bind="click: $parent.claimFounds">Claim founds</a>
+                       <!-- /ko -->
+                       <span data-bind="if: item.state == marketSite.State.Payded">Already payded</span>
+                    </div>
+                </div>
+            </li>
+        <!-- /ko -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="mb-3"></div>
+<script>
+    var viewModel = new PageViewModel(marketSite);
+    viewModel.claimFounds = function(elem) {
+        marketSite.claim(elem.item.itemId)
+            .then(e => showSuccessMessage("Transaction created"))
+            .catch(showErrorMessage);
+    };
+
+    ko.applyBindings(viewModel, $("#main")[0]);
+
+    function changeAddressHandler(e, data) {
+        viewModel.actualAddress((data.connected  && data.address) ? data.address : "");
+        viewModel.loadClaimList();
+    }
+    $("body").on('changeAddress', changeAddressHandler);
+    viewModel.installForClaimList();
+
+    // clean pane and disconnect knockout
+    $("body").on('replacePane', function () {
+        viewModel.unload();
+        $("body").off('changeAddress', changeAddressHandler)
+            .off('replacePane');
+        ko.cleanNode($("#main")[0]);
+        viewMode = undefined;
+    });
+</script>

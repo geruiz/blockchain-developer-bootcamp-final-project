@@ -1,0 +1,83 @@
+<div id="main">
+
+    <div class="row text-center mb-3">
+        <div class="col-lg-7 mx-auto">
+            <h4 class="display-4">Site Admin</h4>
+        </div>
+    </div>
+
+    <!-- ko ifnot: isOwner -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            You can't nothing here.
+        </div>
+    </div>
+    <!-- /ko -->
+
+    <!-- ko if: isOwner -->
+    <div class="row mb-3">
+        <h6 class="display-6">Transfer ownership</h6>
+    </div>
+    <form onsubmit="changeOwner(event)">
+    <div class="row mb-3">
+        <label for="newAddress" class="col-sm-2 col-form-label">New owner address</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="newAddress">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-sm-12 text-end">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </div>
+
+    </form>
+    <!-- /ko -->
+
+</div>
+<script>
+    function AdminViewModel() {
+        var self = this;
+        this.ownerAddress = "";
+        this.isOwner = ko.observable(false);
+
+        this.updateAddress = function() {
+            self.isOwner(self.ownerAddress.toUpperCase() == (web3.currentProvider.selectedAddress || "").toUpperCase());
+        };
+
+        // init
+        marketSite.owner()
+            .then(a => {
+                this.ownerAddress = a;
+                this.updateAddress();
+            });
+    }
+
+    function changeOwner(e) {
+        e.preventDefault();
+        var add = $("#newAddress").val();
+        if (add) {
+            marketSite.transferOwnership(add)
+                .then(e => showSuccessMessage("Transaction created"))
+                .catch(showErrorMessage);
+        }
+    }
+
+    var viewModel= new AdminViewModel();
+    ko.applyBindings(viewModel, $("#main")[0]);
+    $("body").on('changeAddress', viewModel.updateAddress);
+    marketSite.addEventHandler(marketSite.Events.OwnershipTransferred,
+        function (event, data) {
+            viewModel.ownerAddress = data.newOwner;
+            viewModel.updateAddress();
+        });
+
+    // clean pane and disconnect knockout
+    $("body").on('replacePane', function () {
+        marketSite.clearEventHandler(marketSite.Events.OwnershipTransferred);
+        $("body").off('changeAddress', viewModel.updateAddress)
+            .off('replacePane');
+        ko.cleanNode($("#main")[0]);
+        viewModel = undefined;
+    });    
+</script>
