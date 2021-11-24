@@ -4,9 +4,9 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-//import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract MarketSite is Ownable {
+contract MarketSite is Ownable, ReentrancyGuard {
 
   // item's state. Can be:
   //    Published:  Created and ready to be offered.
@@ -119,9 +119,14 @@ contract MarketSite is Ownable {
   function publishItem(string memory _ipfsHash, uint _baseValue, uint _expectedValue) public payable 
     haveFounds(publishCost) {
 
-    // transfer cost value to owner    
+    // transfer publication cost to contract owner    
     (bool success, ) = payable(address(owner())).call{value:publishCost}("");
     require(success, "Transfer failed.");
+
+    if (publishCost < msg.value) {
+      (success, ) = payable(msg.sender).call{value:msg.value - publishCost}("");
+      require(success, "Transfer difference failed.");
+    }
 
     itemsCount++;
     items[itemsCount] = 
@@ -166,22 +171,33 @@ contract MarketSite is Ownable {
     existsItem(_itemId)
     isPublished(_itemId)
     haveFounds(_value) 
-    isNotItemOwner(_itemId) {
+    isNotItemOwner(_itemId)
+    nonReentrant() {
 
       Item storage item = items[_itemId];
+      bool success;
       require(item.actualValue < _value || 
         // same value only permited as first offer
         (item.actualValue == _value && item.state == State.Published), "Max value can not be below value");
 
       if (item.state == State.Published) {
+        // first offer.  The item don't have one
         item.actualValue = _value;
         item.actualOffer.who = payable(msg.sender);
         item.actualOffer.maxBet = msg.value;
         item.state = State.Offered;
+
+        // transfer bet amount to the contract 
+        (success, ) = address(this).call{value:msg.value}("");   
+        require(success, "Transfer failed.");
       }
       else {
         if (item.actualOffer.maxBet >= msg.value) {
           item.actualValue = msg.value;
+
+          // Sender offer is below that existent one.  We returns their founds.
+          (success, ) = payable(msg.sender).call{value:msg.value}("");   
+          require(success, "Refund transfer failed.");
         }
         else {
           // offer change and refund
@@ -192,7 +208,11 @@ contract MarketSite is Ownable {
           item.actualOffer.who = payable(msg.sender);
           item.actualOffer.maxBet = msg.value;
 
-          (bool success, ) = prevOwner.call{value:prevBet}("");
+          // transfer bet amount to the contract    
+          (success, ) = address(this).call{value:msg.value}("");
+          require(success, "Transfer failed.");
+
+          (success, ) = prevOwner.call{value:prevBet}("");
           require(success, "Refund failed.");
         }
       }
@@ -223,4 +243,10 @@ contract MarketSite is Ownable {
       }
       emit ItemPaid(_itemId);
   }
+
+  // Function to receive Ether. msg.data must be empty
+  receive() external payable {}
+
+  // Fallback function is called when msg.data is not empty
+  fallback() external payable {}
 }
