@@ -27,8 +27,8 @@ function MarketSite(_contract, _ipfs, _errorHandler) {
     };
 
     // install global event handler for the contract
-    this.contract.events.allEvents((er, event) => {
-        if (er) {
+    this.contract.events.allEvents((err, event) => {
+        if (err) {
             console.log(err);
             return;
         }
@@ -155,7 +155,7 @@ function MarketSite(_contract, _ipfs, _errorHandler) {
     this.publishItem = function(objData, initialValue, maxValue) {
         return getUserAddress()
             .then(address => {
-                return ipfs.add(JSON.stringify(objData))
+                return _ipfs.add(JSON.stringify(objData))
                     .then(data => {
                         var cid = data.cid.toString();
                         return this.contract.methods.publishItem(cid, initialValue, maxValue)

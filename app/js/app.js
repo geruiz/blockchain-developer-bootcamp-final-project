@@ -6,7 +6,7 @@ const IPFS_PUBLIC_URL = 'http://localhost:8080/ipfs/'
 // global variables
 var web3;
 var ipfs;
-var MarketSite;
+var marketSite;
 
 function showAddress() {
     const prov = web3.currentProvider;
@@ -21,22 +21,22 @@ function showAddress() {
     $("body").trigger('changeAddress', { connected: prov.isConnected(), address: prov.selectedAddress });
 }
 
-function alert(message, type, where) {
+function alertMsg(message, type, where) {
     var wrapper = $('<div class="alert alert-dismissible fade show" role="alert"></div>')
         .addClass('alert-' + type)
         .text(message)
         .append($('<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'));
-    (where || $(".main.container")).prepend(wrapper);
+    (where || $(".alert-container")).prepend(wrapper);
   }
 
 function showErrorMessage(e, where) {
     console.log(e);
-    alert(e.message || e, "danger", where);
+    alertMsg(e.message || e, "danger", where);
 }
 
 function showSuccessMessage(e, where) {
     console.log(e);
-    alert(e.message || e, "success", where);
+    alertMsg(e.message || e, "success", where);
 }
 
 function installWeb3() {
@@ -47,11 +47,16 @@ function installWeb3() {
     web3.currentProvider.on('connect', showAddress);
     web3.currentProvider.on('disconnect', showAddress);
     web3.currentProvider.on('accountsChanged', showAddress);
-    showAddress();
-    marketSite =  new MarketSite(
-        new web3.eth.Contract(MarketSiteABI.abi, MarketSiteAddress),
-        ipfs,
-        showErrorMessage);
+
+    var contract = new web3.eth.Contract(MarketSiteABI.abi, MarketSiteAddress);
+    return contract.methods.owner().call()
+        .then(() => {
+            marketSite =  new MarketSite(
+                contract,
+                ipfs,
+                showErrorMessage);
+            showAddress();
+        });
 }
 
 function installIPFS() {
@@ -91,12 +96,18 @@ function getUserAddress() {
 }
 
 window.onload=function() {
-    try {
-        installIPFS();
-        installWeb3();
-        installNavBar();
-    }
-    catch (e) {
-        showErrorMessage(e);
-    }
+    installWeb3()
+        .then(() => {
+            try {
+                installIPFS();
+                installNavBar();
+            }
+            catch (e) {
+                showErrorMessage(e);
+            }
+        })
+        .catch((e) => {
+            showErrorMessage("Is connected to the correct network?");
+            showErrorMessage(e);
+        });
 };

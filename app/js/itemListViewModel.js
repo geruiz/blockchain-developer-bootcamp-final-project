@@ -73,7 +73,6 @@ function PageViewModel(sellSite) {
     
     this.installForClaimList = function() {
         const eventHandler = () => {
-            debugger;
             this.loadClaimList();
         };
 
