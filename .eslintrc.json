@@ -1,0 +1,17 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 10
+    },
+    "rules": {
+    },
+    "globals": {
+        "$": "readonly",
+        "ko": "readonly",
+        "Web3": "readonly"
+    }
+}

@@ -26,7 +26,7 @@ img.card-img {
   }
 }
 
-.alert {
-  position: fixed;
-  width: 68%;
+.alert-container {
+  position: absolute;
+  width: 80%;
 }
