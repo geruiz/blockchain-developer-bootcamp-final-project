@@ -5,7 +5,7 @@ function PageViewModel(sellSite) {
     this.actualAddress = ko.observable(web3.currentProvider.selectedAddress || "");
 
     function retriveIPFSContent(v) {
-        $.get(IPFS_PUBLIC_URL + v.ipfsHash, 
+        $.get(IPFS_GATEWAY + v.ipfsHash, 
             obj => {
                 self.items.push({
                     ipfs: obj,
@@ -24,7 +24,7 @@ function PageViewModel(sellSite) {
     function addItem(itemId) {
         sellSite.retrieveItem(itemId)
             .then(item => {
-                $.get(IPFS_PUBLIC_URL + item.ipfsHash)
+                $.get(IPFS_GATEWAY + item.ipfsHash)
                 .done( obj => {
                     const newVal = {ipfs: obj, item: item, updated: true};
                     self.items.unshift(newVal);
