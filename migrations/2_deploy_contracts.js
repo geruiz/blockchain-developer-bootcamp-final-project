@@ -2,9 +2,11 @@ const fs = require('fs');
 
 var MarketSite = artifacts.require("./MarketSite.sol");
 
-module.exports = function(deployer) {
+module.exports = function(deployer, network) {
+
   deployer.deploy(MarketSite, 10, 7)
     .then(() => {
+        console.log("Try to generate constant file...");
         var stream = fs.createWriteStream("./app/js/contract_constant.js");
         stream.once('open', function(fd) {
           stream.write("var MarketSiteAddress='");

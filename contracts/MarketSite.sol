@@ -97,6 +97,12 @@ contract MarketSite is Ownable, ReentrancyGuard {
     _;
   }
 
+  // check if the minor amount is less or equal than the maximun.
+  modifier amountAreValids(uint _minValue, uint _maxValue) {
+    require(_minValue <= _maxValue, "The expected minor amount is not");
+    _;
+  }
+
   /**
    * Constructor.  Expects:
    *    - publish cost to transfer at owner.
@@ -117,7 +123,8 @@ contract MarketSite is Ownable, ReentrancyGuard {
    *   - Expected max value.
    */ 
   function publishItem(string memory _ipfsHash, uint _baseValue, uint _expectedValue) public payable 
-    haveFounds(publishCost) {
+    haveFounds(publishCost)
+    amountAreValids(_baseValue, _expectedValue) {
 
     // transfer publication cost to contract owner    
     (bool success, ) = payable(address(owner())).call{value:publishCost}("");
@@ -170,7 +177,7 @@ contract MarketSite is Ownable, ReentrancyGuard {
   function offerItem(uint _itemId, uint _value) public payable 
     existsItem(_itemId)
     isPublished(_itemId)
-    haveFounds(_value) 
+    haveFounds(_value)
     isNotItemOwner(_itemId)
     nonReentrant() {
 

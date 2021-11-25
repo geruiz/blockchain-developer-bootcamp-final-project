@@ -8,6 +8,7 @@
 function MarketSite(_contract, _ipfs, _errorHandler) {
     this.self = this;
     this.contract = _contract;
+    this.ipfs = _ipfs;
     this.eventsHandlers={};
 
     // public constants
@@ -153,9 +154,12 @@ function MarketSite(_contract, _ipfs, _errorHandler) {
      * @returns a Promise with the transaction.
      */
     this.publishItem = function(objData, initialValue, maxValue) {
+        if (maxValue < initialValue) {
+            return Promise.reject("The initial value must be less than max value");
+        }
         return getUserAddress()
             .then(address => {
-                return _ipfs.add(JSON.stringify(objData))
+                return this.ipfs.add(JSON.stringify(objData))
                     .then(data => {
                         var cid = data.cid.toString();
                         return this.contract.methods.publishItem(cid, initialValue, maxValue)

@@ -28,22 +28,29 @@
                         <img class="card-img" data-bind="attr: { src: ipfs.image }">
                     </div>
                     <div class="col-6">
+                        <!-- ko if: item.state == marketSite.State.Published -->
+                        <span class="state-label witout-offers">Without offers</span>
+                        <!-- /ko -->
+                        <!-- ko if: item.state >= marketSite.State.Finished -->
+                        <span class="state-label sold">Sold</span>
+                        <!-- /ko -->
                         <h5 class="mt-0 font-weight-bold mb-2" data-bind="text: ipfs.title"></h5>
-                        <p class="font-italic text-muted mb-0 small" data-bind="text: ipfs.description"></p>
+                        <p class="font-italic mb-4" data-bind="text: ipfs.description"></p>
 
-                        <p><span data-bind="if: item.state == marketSite.State.Published">Initial Price</span>
-                           <span data-bind="if: item.state == marketSite.State.Offered">Actual Price</span>
-                           <span data-bind="if: item.state > marketSite.State.Offered">Sold Price</span>
-                            (in wei): 
+                        <p class="mb-2">
+                            <span data-bind="if: item.state == marketSite.State.Published">Initial Price</span>
+                            <span data-bind="if: item.state == marketSite.State.Offered">Actual Price</span>
+                            <span data-bind="if: item.state > marketSite.State.Offered">Sold Price</span>
+                                (in wei): 
                             <span data-bind="text: item.actualValue"></span>
                             <!-- ko if: item.state > marketSite.State.Published -->
-                            offered by
+                                offered by
                             <span data-bind="text: $parent.compactAddress(item.offerAddress)"></span> <span data-bind="if: $parent.isOwn(item.offerAddress)"> (you!)</span>
                             <!-- /ko -->
                        </p>
-                       <p data-bind="if: item.state <= marketSite.State.Offered">
+                        <p data-bind="if: item.state <= marketSite.State.Offered">
                            End date: <span data-bind="text: $parent.endDate(item)"></span>
-                       </p>
+                        </p>
                         <!-- ko if: $parent.canOffer(item) -->
                         <a href="#" class="btn btn-primary" data-bind="click: $parent.createOffer">Offer</a>
                         <!-- /ko -->
@@ -64,8 +71,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title" id="staticBackdropLabel">Create Offer</h5>
         </div>
         <div class="modal-body">
             <form>
@@ -111,8 +117,10 @@
         var modalElement = $("#buyForm"),
             modalView = bootstrap.Modal.getOrCreateInstance(modalElement[0]);
         modalElement.find("#itemId").val(elem.item.itemId);
-        modalElement.find("#amount").val(elem.item.actualValue);
+        modalElement.find("#amount").val(parseInt(elem.item.actualValue, 10) 
+            + (elem.item.state == marketSite.State.Offered ? 1 : 0));
         modalElement.find("#maxAmount").val("");
+        modalElement.find(".alert").remove();
         modalView.show();
     };
     ko.applyBindings(viewModel, $("#main")[0]);
@@ -128,15 +136,25 @@
             maxAmount = main.find("#maxAmount").val(),
             modalView = bootstrap.Modal.getOrCreateInstance(main[0]);
 
-            marketSite.createOffer(parseInt(itemId), parseInt(amount), parseInt(maxAmount))
-            .then(tx => {
-                modalView.hide();
-                showSuccessMessage("Transaction created");
-                return tx;
-            })
-            .catch(e => {
-                showErrorMessage(e, main.find(".modal-body"));
-            });
+            try {
+                var iAmount = parseInt(amount, 10),
+                    iMaxAmount = parseInt(maxAmount, 10);
+                if (iAmount > iMaxAmount) {
+                    throw new Error("Amount value must be less than Maximum Amount");
+                }
+                marketSite.createOffer(parseInt(itemId), iAmount, iMaxAmount)
+                .then(tx => {
+                    modalView.hide();
+                    showSuccessMessage("Transaction created");
+                    return tx;
+                })
+                .catch(e => {
+                    showErrorMessage(e, main.find(".modal-body"));
+                });
+            }
+            catch (e) {
+                showErrorMessage("The params are incorrect: " + e, main.find(".modal-body"));
+            }
     });
 
     $("body").on('changeAddress', changeAddressHandler);

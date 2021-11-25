@@ -108,6 +108,12 @@ contract("MarketSite", accounts => {
     }, 'Need more founds' );
   });
 
+  it ("Test publish with invalid params", async function() {
+    verifyFail(async () => {
+      await instance.publishItem("item ipfs", 30, 20, { from: accounts[1], value: 10 });
+    }, 'The expected minor amount is not' );
+  });
+
   it ("Test retrieve existent item", async function() {
     // create a valid item
     const createdInfo = await createDefault();
@@ -182,7 +188,14 @@ contract("MarketSite", accounts => {
     verifyFail(async () => {
       await instance.offerItem(1, 20, { from: accounts[2], value: 10 })
     },'Need more founds' );
+  });
 
+  it ("Test fail offer a minor value that existent", async function() {
+    await createDefault();
+
+    verifyFail(async () => {
+      await instance.offerItem(1, 5, { from: accounts[2], value: 10 })
+    },'Max value can not be below value' );
   });
 
   it ("Test fail if offer the owner", async function() {

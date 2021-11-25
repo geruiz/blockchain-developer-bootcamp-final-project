@@ -1,7 +1,8 @@
 // global constants
 const IPFS_HOST = 'localhost';
 const IPFS_PORT = 5001;
-const IPFS_PUBLIC_URL = 'http://localhost:8080/ipfs/'
+const IPFS_PUBLIC_URL = 'http://localhost:8080/ipfs/';
+const NETWORK = '127.0.0.1:7545';  // expected network
 
 // global variables
 var web3;
@@ -41,29 +42,31 @@ function showSuccessMessage(e, where) {
 
 function installWeb3() {
     if (!window.ethereum || !window.ethereum.isMetaMask) {
-        throw new Error("Metamask is not installed");
+        return Promise.reject("Metamask is not installed");
     }
     web3 = new Web3(window.ethereum);
-    web3.currentProvider.on('connect', showAddress);
-    web3.currentProvider.on('disconnect', showAddress);
-    web3.currentProvider.on('accountsChanged', showAddress);
-
     var contract = new web3.eth.Contract(MarketSiteABI.abi, MarketSiteAddress);
     return contract.methods.owner().call()
         .then(() => {
-            marketSite =  new MarketSite(
-                contract,
-                ipfs,
-                showErrorMessage);
+            marketSite =  new MarketSite(contract, ipfs, showErrorMessage);
+            web3.currentProvider.on('connect', showAddress);
+            web3.currentProvider.on('disconnect', showAddress);
+            web3.currentProvider.on('accountsChanged', showAddress);
             showAddress();
+        })
+        .catch( e => { 
+            console.log(e);
+            return Promise.reject("Don't detect the contract. Is installed? Do you connect to the correct network?" +
+            " Expect: " + NETWORK + ". Check parameters and reload this page.");
         });
 }
 
 function installIPFS() {
     if (!window.IpfsHttpClient) {
-        throw new Error("IPFS client not detected!");
+        return Promise.reject("IPFS client not detected!");
     }
     ipfs = window.IpfsHttpClient.create({ host: IPFS_HOST, port: IPFS_PORT });
+    return Promise.resolve(ipfs);
 }
 
 function installNavBar() {
@@ -73,9 +76,10 @@ function installNavBar() {
         let url = e.target.href;
         url = url.substring(url.indexOf('#')+ 1);
         $.get(url + ".html", function (data) {
+            $(".alert-container").empty();
             $(".nav-link.active").removeClass("active");
             $("body").trigger('replacePane');
-            $(".main.container").empty()
+            $(".main").empty()
                 .append(data);
             $(e.target).addClass("active");
         });
@@ -96,18 +100,17 @@ function getUserAddress() {
 }
 
 window.onload=function() {
-    installWeb3()
+    installIPFS()
+        .then(installWeb3)
         .then(() => {
             try {
-                installIPFS();
                 installNavBar();
             }
             catch (e) {
-                showErrorMessage(e);
+            showErrorMessage(e);
             }
         })
         .catch((e) => {
-            showErrorMessage("Is connected to the correct network?");
             showErrorMessage(e);
         });
 };

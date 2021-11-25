@@ -70,17 +70,22 @@
 
     function createPublication(e) {
         e.preventDefault();
-        var obj = {
-            title : $("input#title").val(),
-            description : $("textarea#description").val(),
-            image : $("img#image").attr("src")
-        };
-        const initialValue = $("input#initialValue").val();
-        const maxValue = $("input#maxValue").val();
-        
-        marketSite.publishItem(obj, parseInt(initialValue, 10), parseInt(maxValue, 10))
-            .then(x => showSuccessMessage("Transaction created!"))
-            .catch(showErrorMessage);
+        try {
+            var obj = {
+                title : $("input#title").val(),
+                description : $("textarea#description").val(),
+                image : $("img#image").attr("src")
+            };
+            const initialValue = parseInt($("input#initialValue").val(), 10);
+            const maxValue = parseInt($("input#maxValue").val(), 10);
+
+            marketSite.publishItem(obj, initialValue, maxValue)
+                .then(x => showSuccessMessage("Transaction created!"))
+                .catch(showErrorMessage);
+        }
+        catch (e) {
+            showErrorMessage("Params are invalid");
+        }
     }
 
 </script>
