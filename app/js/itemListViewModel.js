@@ -5,14 +5,14 @@ function PageViewModel(sellSite) {
     this.actualAddress = ko.observable(web3.currentProvider.selectedAddress || "");
 
     function retriveIPFSContent(v) {
-        $.get(IPFS_GATEWAY + v.ipfsHash, 
-            obj => {
+        sellSite.ipfs.getJSON(v.ipfsHash)
+            .then(obj =>
                 self.items.push({
                     ipfs: obj,
                     item: v,
                     updated: false
-                });
-            });
+                })
+            );
     }
 
     function clearItemStatus(item) {
@@ -24,8 +24,8 @@ function PageViewModel(sellSite) {
     function addItem(itemId) {
         sellSite.retrieveItem(itemId)
             .then(item => {
-                $.get(IPFS_GATEWAY + item.ipfsHash)
-                .done( obj => {
+                sellSite.ipfs.getJSON(item.ipfsHash)
+                .then( obj => {
                     const newVal = {ipfs: obj, item: item, updated: true};
                     self.items.unshift(newVal);
                     clearItemStatus(newVal);

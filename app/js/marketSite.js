@@ -2,10 +2,13 @@
  * This object wrap the contract to be used by de dapp.
  * 
  * @param _contract Contract object created from web3.
+ * @param _ipfs IPFS client.
+ * @param _publishCost Cost of create a publication.
  * @param _errorHandler Where logs errors generated from the contract calls.
  */
-function MarketSite(_contract, _errorHandler) {
+function MarketSite(_contract, _ipfs, _publishCost, _errorHandler) {
     this.self = this;
+    this.ipfs = _ipfs;
     this.contract = _contract;
     this.eventsHandlers={};
 
@@ -156,21 +159,10 @@ function MarketSite(_contract, _errorHandler) {
             return Promise.reject("The initial value must be less than max value");
         }
         return getUserAddress()
-            .then(address => 
-                ajax({
-                    method: 'POST',
-                    url: IPFS_URL,
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    data: JSON.stringify(objData),
-                    headers: {
-                        pinata_api_key: '17dabe953eb82c24ab55',
-                        pinata_secret_api_key: '1b5cd9a5dd32d5c29bceaf926637d3750eadbd03264680b9031e36a0be4f32db'
-                    }
-                })
-                .then(data => 
-                    this.contract.methods.publishItem(data.IpfsHash, initialValue, maxValue)
-                        .send({from: address, value:maxValue }))
+            .then(address => this.ipfs.addJSON(objData)
+                .then(hash => 
+                    this.contract.methods.publishItem(hash, initialValue, maxValue)
+                        .send({from: address, value:_publishCost }))
             );
     };
 

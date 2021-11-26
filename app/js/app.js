@@ -1,9 +1,4 @@
 // global constants
-// Previously I used a local instalation of IPFS with ipfs-http-client, but this is incompatible with pinata service.
-// I keep the creation function, but it is not called
-const IPFS_URL = 'https://api.pinata.cloud/pinning/pinJSONToIPFS';
-const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
-
 const NETWORK = '127.0.0.1:7545';  // expected network
 
 // global variables
@@ -47,9 +42,10 @@ function installWeb3() {
     }
     web3 = new Web3(window.ethereum);
     var contract = new web3.eth.Contract(MarketSiteABI.abi, MarketSiteAddress);
-    return contract.methods.owner().call()
-        .then(() => {
-            marketSite =  new MarketSite(contract, showErrorMessage);
+    return contract.methods.publishCost().call()
+        .then(cost => {
+            var ipfs = new ipfsApiClient();  // can be Pinata implementation
+            marketSite =  new MarketSite(contract, ipfs, cost, showErrorMessage);
             web3.currentProvider.on('connect', showAddress);
             web3.currentProvider.on('disconnect', showAddress);
             web3.currentProvider.on('accountsChanged', showAddress);
@@ -60,15 +56,6 @@ function installWeb3() {
             return Promise.reject("Don't detect the contract. Is installed? Do you connect to the correct network?" +
             " Expect: " + NETWORK + ". Check parameters and reload this page.");
         });
-}
-
-// unused
-function installIPFS() {
-    if (!window.IpfsHttpClient) {
-        return Promise.reject("IPFS client not detected!");
-    }
-    ipfs = window.IpfsHttpClient.create({ host: IPFS_HOST, port: IPFS_PORT, protocol: IPFS_PROTOCOL, apiPath: IPFS_APIPATH });
-    return Promise.resolve(ipfs);
 }
 
 function installNavBar() {
@@ -107,13 +94,6 @@ function getUserAddress() {
             .request({ method: 'eth_requestAccounts' })
             .then((accounts) => accounts[0]);
     }
-}
-
-// wrapper over ajax function of jQuery to returns a Promise
-function ajax(options) {
-    return new Promise(function (resolve, reject) {
-        $.ajax(options).done(resolve).fail(reject);
-    });
 }
 
 window.onload=function() {
