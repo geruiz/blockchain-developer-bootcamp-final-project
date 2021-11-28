@@ -9,6 +9,7 @@
 function MarketSite(_contract, _ipfs, _publishCost, _errorHandler) {
     this.self = this;
     this.ipfs = _ipfs;
+    this.publishCost = _publishCost;
     this.contract = _contract;
     this.eventsHandlers={};
 
@@ -18,7 +19,8 @@ function MarketSite(_contract, _ipfs, _publishCost, _errorHandler) {
         ValueChanged: "ValueChanged",
         ItemSold: "ItemSold",
         ItemPaid: "ItemPaid",
-        OwnershipTransferred: "OwnershipTransferred"
+        OwnershipTransferred: "OwnershipTransferred",
+        PublicationCost: "PublicationCost"
     };
 
     this.State = {
@@ -34,6 +36,11 @@ function MarketSite(_contract, _ipfs, _publishCost, _errorHandler) {
             console.log(err);
             return;
         }
+        // this object keep a copy for the publication cost
+        if (event.event === "PublicationCost") {
+            this.publishCost = event.returnValues.publicationCost;
+        }
+
         let handlers = this.eventsHandlers[event.event];
         if (handlers) {
             for(let pos in handlers) {
@@ -162,7 +169,7 @@ function MarketSite(_contract, _ipfs, _publishCost, _errorHandler) {
             .then(address => this.ipfs.addJSON(objData)
                 .then(hash => 
                     this.contract.methods.publishItem(hash, initialValue, maxValue)
-                        .send({from: address, value:_publishCost }))
+                        .send({from: address, value: this.publishCost }))
             );
     };
 
@@ -215,8 +222,21 @@ function MarketSite(_contract, _ipfs, _publishCost, _errorHandler) {
         return getUserAddress()
             .then(address => {
                 return this.contract.methods.transferOwnership(newAddress)
-                 .send({from: address});
+                    .send({from: address});
         });
     };
 
+    /**
+     * Change the publication cost for a product.
+     * 
+     * @param {number} newCost The new value for publication cost.
+     * @returns a Promise with the transaction.
+     */
+    this.setPublicationCost = function(newCost) {
+        return getUserAddress()
+            .then(address => {
+                return this.contract.methods.setPublicationCost(newCost)
+                    .send({from: address});
+        });
+    }
 }

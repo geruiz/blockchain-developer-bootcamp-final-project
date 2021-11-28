@@ -48,3 +48,13 @@ img.card-img {
   color: red;
   border-color: red;
 }
+
+.form-box {
+  padding: 1.5rem;
+  margin: 1rem -.75rem 0;
+  margin-right: 0;
+  margin-left: 0;
+  border: solid #dee2e6;
+  border-width: 1px;
+  border-radius: .25rem;
+}

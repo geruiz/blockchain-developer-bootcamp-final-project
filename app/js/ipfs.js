@@ -50,7 +50,7 @@ function ipfsPinata() {
      * @returns a Promise that evaluate to String, with the new file id.
      */
     this.addJSON = function(obj) {
-        // I use a test key
+        // You need add your own keys
         return ajax({
                 method: 'POST',
                 url: IPFS_URL,
@@ -58,8 +58,8 @@ function ipfsPinata() {
                 dataType: 'json',
                 data: JSON.stringify(obj),
                 headers: {
-                    pinata_api_key: '17dabe953eb82c24ab55',
-                    pinata_secret_api_key: '1b5cd9a5dd32d5c29bceaf926637d3750eadbd03264680b9031e36a0be4f32db'
+                    pinata_api_key: '',
+                    pinata_secret_api_key: ''
                 }
             })
             .then(data => Promise.resolve(data.IpfsHash));

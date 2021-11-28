@@ -15,34 +15,71 @@
     <!-- /ko -->
 
     <!-- ko if: isOwner -->
-    <div class="row mb-3">
-        <h6 class="display-6">Transfer ownership</h6>
-    </div>
-    <form onsubmit="changeOwner(event)">
-    <div class="row mb-3">
-        <label for="newAddress" class="col-sm-2 col-form-label">New owner address</label>
-        <div class="col-sm-10">
-          <input type="text" class="form-control" id="newAddress">
+    <div class="form-box">
+        <form data-bind="submit: changeOwner">
+        <div class="row g-3">
+            <div class="col-3">
+                <label for="newAddress" class="col-form-label">Transfer ownership</label>
+            </div>
+            <div class="col-6">
+                <input type="text" id="newAddress" class="form-control" size="42" maxlength="50" placeholder="New owner address" data-bind="textInput: newAddress">
+            </div>
+            <div class="col-3">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
         </div>
-    </div>
-    <div class="row mb-3">
-        <div class="col-sm-12 text-end">
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
+        </form>
     </div>
 
-    </form>
+    <div class="form-box">
+        <form data-bind="submit: changePublicationCost">
+        <div class="row g-3">
+            <div class="col-3">
+                <label for="publicationCost" class="col-form-label">Set publication cost</label>
+            </div>
+            <div class="col-6">
+                <input type="text" id="publicationCost" class="form-control" size="20" maxlength="50" data-bind="textInput: publicationCost">
+            </div>
+            <div class="col-3">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+        </form>
+    </div>
     <!-- /ko -->
-
 </div>
+
 <script>
+    // View model class
     function AdminViewModel() {
         var self = this;
         this.ownerAddress = "";
+        this.newAddress = ko.observable("");
+        this.publicationCost = ko.observable(marketSite.publishCost);
         this.isOwner = ko.observable(false);
 
         this.updateAddress = function() {
             self.isOwner(self.ownerAddress.toUpperCase() == (web3.currentProvider.selectedAddress || "").toUpperCase());
+        };
+
+        this.changeOwner = function() {
+            event.preventDefault();
+            var add = this.newAddress();
+            if (add !== "") {
+                marketSite.transferOwnership(add)
+                    .then(e => showSuccessMessage("Transaction created"))
+                    .catch(showErrorMessage);
+            }
+        };
+
+        this.changePublicationCost = function() {
+            event.preventDefault();
+            var newCost = this.publicationCost();
+            if (newCost !== "" && !Number.isNaN(parseInt(newCost, 10))) {
+                marketSite.setPublicationCost(newCost)
+                    .then(e => showSuccessMessage("Transaction created"))
+                    .catch(showErrorMessage);
+            }
         };
 
         // init
@@ -51,16 +88,6 @@
                 this.ownerAddress = a;
                 this.updateAddress();
             });
-    }
-
-    function changeOwner(e) {
-        e.preventDefault();
-        var add = $("#newAddress").val();
-        if (add) {
-            marketSite.transferOwnership(add)
-                .then(e => showSuccessMessage("Transaction created"))
-                .catch(showErrorMessage);
-        }
     }
 
     var viewModel= new AdminViewModel();

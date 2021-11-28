@@ -42,7 +42,8 @@ function installWeb3() {
     }
     web3 = new Web3(window.ethereum);
     var contract = new web3.eth.Contract(MarketSiteABI.abi, MarketSiteAddress);
-    return contract.methods.publishCost().call()
+    return contract.methods.getPublicationCost()
+        .call()
         .then(cost => {
             var ipfs = new ipfsApiClient();  // can be Pinata implementation
             marketSite =  new MarketSite(contract, ipfs, cost, showErrorMessage);
