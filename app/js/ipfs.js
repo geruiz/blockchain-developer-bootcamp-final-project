@@ -56,7 +56,7 @@ function ipfsPinata() {
                 url: IPFS_URL,
                 contentType: 'application/json',
                 dataType: 'json',
-                data: JSON.stringify(objData),
+                data: JSON.stringify(obj),
                 headers: {
                     pinata_api_key: '17dabe953eb82c24ab55',
                     pinata_secret_api_key: '1b5cd9a5dd32d5c29bceaf926637d3750eadbd03264680b9031e36a0be4f32db'

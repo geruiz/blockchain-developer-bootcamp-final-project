@@ -73,8 +73,8 @@ contract("MarketSite", accounts => {
 
   it ("Validate creation params", async function () {
     assert.equal(await instance.itemsCount.call(), 0);
-    assert.equal(await instance.publishCost.call(), 10);
-    assert.equal(await instance.publishDays.call(), 7 * 24 * 60 * 60);
+    assert.equal(await instance.getPublicationCost(), 10);
+    assert.equal(await instance.getPublicationDays(), 7 * 24 * 60 * 60);
     assert.equal(await instance.owner(), accounts[0]);
   });
 
@@ -86,8 +86,22 @@ contract("MarketSite", accounts => {
   });
 
 
-  it ("Test publish an item", async function() {
+  it ("Test set a new publication cost", async function() {
+    const tx = await instance.setPublicationCost(30,  { from: accounts[0] });
 
+    assert.equal(await instance.getPublicationCost(), 30, "Expected the new publication value");
+    verifyEvents(tx, "PublicationCost");
+  });
+
+
+  it ("Fail fail change the publication cost from accounts differents at owner", async function() {
+    verifyFail(async () => {
+      await instance.setPublicationCost(30,  { from: accounts[1] });
+    }, 'Ownable: caller is not the owner' );
+  });
+
+
+  it ("Test publish an item", async function() {
     const balanceBeforeAcc0 = await web3.eth.getBalance(accounts[0]);
     // in this case, transfer more founds
     const tx = await instance.publishItem("item ipfs", 20, 300, { from: accounts[1], value: 50 }); 
@@ -102,17 +116,20 @@ contract("MarketSite", accounts => {
     verifyEvents(tx, "PublishedItem");
   });
 
+
   it ("Test publish without enough founds", async function() {
     verifyFail(async () => {
       await instance.publishItem("item ipfs", 20, 30, { from: accounts[1], value: 5 });
     }, 'Need more founds' );
   });
 
+
   it ("Test publish with invalid params", async function() {
     verifyFail(async () => {
       await instance.publishItem("item ipfs", 30, 20, { from: accounts[1], value: 10 });
     }, 'The expected minor amount is not' );
   });
+
 
   it ("Test retrieve existent item", async function() {
     // create a valid item
@@ -127,12 +144,14 @@ contract("MarketSite", accounts => {
     assert.equal(result.offerAddress, emptyAddress, "Offer address not match");
   });
 
+
   it ("Fail if the item does not exists", async function() {
 
     verifyFail(async () => {
       await instance.getItem(new BN("1"));
     },'Inexistent item' );
   });
+
 
   it ("Test a series of offers over an existent item to review all states changes", async function() {
     let balanceBefore, balanceAfter,  tx;
@@ -182,6 +201,7 @@ contract("MarketSite", accounts => {
 
   });
 
+
   it ("Test fail offer with less founds", async function() {
     await createDefault();
 
@@ -198,6 +218,7 @@ contract("MarketSite", accounts => {
     },'Max value can not be below value' );
   });
 
+
   it ("Test fail if offer the owner", async function() {
     await createDefault();
 
@@ -205,6 +226,7 @@ contract("MarketSite", accounts => {
       await instance.offerItem(1, 20, { from: accounts[1], value: 100 });
    }, 'Is the item owner');
   });
+
 
   it ("Test claim founds by the item owner", async function() {
     // item created by account 1 with max value of 300
@@ -230,11 +252,12 @@ contract("MarketSite", accounts => {
     //   account1 have +300 in his balance
     //   account2 have +100 in his balance, as a refund (he paid 400)
     //   contract account keep in zero
-    assert.equal(balanceAfterAcc1.toString(), new BN(balanceBeforeAcc1).add(new BN(300)).toString(),  "Don't get the refound");
+    assert.equal(balanceAfterAcc1.toString(), new BN(balanceBeforeAcc1).add(new BN(300)).toString(),  "Don't transfer to seller");
     assert.equal(balanceAfterAcc2.toString(), new BN(balanceBeforeAcc2).add(new BN(100)).toString(),  "Don't get the refound");
     assert.equal(await web3.eth.getBalance(instance.address), new BN(0).toString(), "Don't match contract balance");
   });
 
+  
   it ("Test fail claims founds from other account", async function() {
     const result = await createDefault();
     await buyDefault(result.id);
