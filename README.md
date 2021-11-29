@@ -26,6 +26,9 @@ In all of the offer cases, if the product mount is bigger than the achievable pr
 
 * Either because a deadline has passed or because of the seller's will, the offer ends and the amount of the current offer will be transferred to the seller. If there is a difference between the maximum bid and the purchase bid, it will be refunded to the buyer.
 
+* The contract owner can change the publication cost.  This cost, associated with the publication creation process, is transfered to the owner address when this happens.
+
+* Sold and payded items need to be deleted to free space.  This use case is not covered at the moment.
 
 # Public Site URL
 The DAPP is hosted in this URL: https://geruiz.github.io/
@@ -46,7 +49,7 @@ Next, need truffle installed as global.
 npm install -g truffle
 ```
 
-At last, install dependencies (contracts from OpenZeppelin and local server from servor)
+At last, install needed dependencies for build, deploy an run.
 ``` 
 npm install
 ```
@@ -60,6 +63,7 @@ or
 ```
 npm run build
 ```
+
 ## Test
 The contract test can be executed with:
 ```
@@ -79,13 +83,18 @@ This DAPP was developed using Ganache.  Download from here: https://www.truffles
 ```
 truffle deploy --reset --network ganache
 ```
-The contract migration process will generate the file `/js/contract_constant.js` with contract ABI and contract address.
 
-+ Next start the front end web executing:
+The contract migration process will generate the file `/js/contract_constant.js` with contract ABI and contract address.
+This file is used in the web site to allow interaction with the contract.
+
++ Next start the frontend web app executing:
 ```
 npm start
 ```
-The server listen the port 8000
+
+The server listen the port 8000.
+
+Open a web browser with Metamask installed and navigate at page http://127.0.0.1:8000
 
 ## Technical considerations
 This DAPP uses javascript libraries from CDN services.  You need an Internet connection to allow the browser to download this.
@@ -93,12 +102,28 @@ There are:
   - JQuery
   - Bootstrap
   - Web3
+  - ipfs-http-client
   - KnockoutJS
 
-To save file in IPFS, the DAPP use Pinata with test credentials. At last moment, ipfs-http-client was replaced.
+To save files in IPFS, the DAPP uses for default the service provided by Infura.  If you want to use Pinata as a provider, you need to replace the wrapper client.  See the function `ipfsPinata()` in the file `js/ipfs.js`.
 
 ## Repository structure
-  - `app` Frontend implementation.
-  - `contracts` Smart constracts source.
-  - `migrations` JS scripts to deploy the contracts.
-  - `test` JS file to test the Smart Contract.
+
+This repository has the following structure: 
+```
+  .
+  └── app                          Frontend implementation.
+    └── js                         Directory with JavaScript files.
+    └── img                        Directory with the default image.
+  └── contracts                    Smart constracts source.
+  └── migrations                   JS scripts to deploy the contracts.
+  └── test                         JS file to test the smart contract.
+  .env_sample                      Example for a .env file to deploy the contract in a public network.
+  avoiding_common_attacks.md       Documentation relative to avoid common attacks.
+  deployed_address.txt             Contract publication address in Ropsten network.
+  design_pattern_decisions.md      Documentation about design decisions.
+  README.md                        This file.
+  package.json                     Proyect dependencies.
+  truffle-config.js                Truffle configuration.
+
+```

@@ -79,27 +79,27 @@
                 <div class="row gy-2">
                     <div class="col-8">
                         <div>
-                            <label for="amount" class="col-form-label">Amount</label>
+                            <label for="amount" class="col-form-label">Amount to bet (in wei)</label>
                         </div>
                         <div id="amountHelpInline" class="form-text">
                             Value to paid for the item.
                         </div>
                     </div>
                     <div class="col-4">
-                        <input type="text" id="amount" class="form-control" aria-describedby="amountHelpInline">
+                        <input type="text" id="amount" class="form-control" autocomplete="off" aria-describedby="amountHelpInline">
                     </div>
                 </div>
                 <div class="row gy-2">
                     <div class="col-8">
                         <div>
-                            <label for="maxAmount" class="col-form-label">Maximum Amount</label>
+                            <label for="maxAmount" class="col-form-label">Maximum Amount (in wei)</label>
                         </div>
                         <div id="maxAmountHelpInline" class="form-text">
-                            Maximum amount to be paid.  In case of not winning, the value will be refunded.
+                            Maximum amount to be paid.  In case of not winning, the difference value will be refunded.
                         </div>
                     </div>
                     <div class="col-4">
-                        <input type="text" id="maxAmount" class="form-control" aria-describedby="maxAmountHelpInline">
+                        <input type="text" id="maxAmount" class="form-control" autocomplete="off" aria-describedby="maxAmountHelpInline">
                     </div>
                 </div>
             </form>     

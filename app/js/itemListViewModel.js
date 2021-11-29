@@ -27,7 +27,7 @@ function PageViewModel(sellSite) {
                 sellSite.ipfs.getJSON(item.ipfsHash)
                 .then( obj => {
                     const newVal = {ipfs: obj, item: item, updated: true};
-                    self.items.unshift(newVal);
+                    self.items([newVal].concat(self.items()));
                     clearItemStatus(newVal);
                 });
             });
