@@ -2,33 +2,36 @@
 
 ## About this site
 
-The idea is to build a site for buying and selling products (like Mercado Libre or Ebay) using a smart contract.
-This site has this particularity: the items for sale will be auctioned and would not have a fixed sale amount. And when a bid is made, the user must give a maximum value to allow automatic bids (as can be done on some auction sites).
-Also, all the items in sell have a time out and a maximum sell mount.  By reaching either one, the publication will end.
+This site is for buying and selling products (like Mercado Libre or Ebay) based on smart contracts. In this site the items for sale will be auctioned.  They don't have a fixed sale amount. When the user made a bid, he must gives a maximum value to allow automatic bids (as can be done on some auction sites).
+
+Also, all the items for sale have a time out and a maximum sale price.  Bidding ends when the highest bidder reaches the maximum price of the publication or when the bidding time runs out.
 
 ## Use case descriptions
 
-* Contract installation.  In this moment, the contract owner define twe values:  the publication cost and the time limit.
+* Smart Contract deploy.  The contract owner must define two values:  the publication fee and the timeout duration.  For example, a contract could have a fee of 10 wei and a duration of 7 days.
 
-* An item is registered for sale (e.g. a chair).  The user must indicate a base price, an achievable price and a description over it.  This description is saved as a JSON file in a IPFS service.
-The publication has a cost.  This value is transferred to the contract owner.
+* A user registers an item for sale (e.g. a chair).  The user must indicate a base price, a desirable price and a description of the item.  This description is stored as a JSON file in an IPFS service.
 
-+ Receive an offer over an item for sale.  In every offer, the buyer must indicate the actual value and the maximum value to pay.  This last value is used to realize automatic bets.
-There are this situations:
-  * The value (and the max value) is below the current bid.  So, it is ignored and the payment returned to the user.
-  * The value is greater than the current bid, and below the actual maximum. Also, the maximum amount to be paid is below the actual maximum.  In this case, the actual payment for the product is updated to the max value and the payment returned to the user.
-  * The last case, the maximum value is greater than the existent maximum.  The user win de bet and the payment made by the previous user is refund.
-In all of the offer cases, if the product mount is bigger than the achievable price, the publication finish and the winner is the current buyer.  
+The publication fee is transferred to the contract owner.
 
-* There is an external service (like a cron or Gelato) to verify the finish date of every active publication.  This situation is no covered by this development.
++ Receive a bid for an auction item. For each bid, the buyer must indicate his current bid value and the maximum value he wishes to pay.  The latter value is used for automatic bidding.
 
-* There is some kind of agreement where the seller indicates that he delivered the product to the buyer.  This use case is not covered by this development.
+One of the following situations may apply:
+  * The value of the offer price (and the value of the maximum price) is below the current offer price.  In this case, it is ignored and the payment is refunded to the user.
+  * The value of the bid price is higher than the current bid price, and lower than the actual maximum price. In addition, the maximum price to be paid is lower than the actual maximum price offered.  In this case, the actual payment for the product is updated to the maximum value and the payment is returned to the user. For example, a product has a current bid price of 20 and a maximum price to pay of 100. If another buyer bids 40 and the maximum bid value is 80, with these values he will not win the bid as he will not reach the value of 100. In addition, this will raise the current bid on the product to 80, keeping the previous user as the winner.
+  * The value of the maximum price is higher than the existing maximum price.  The buyer wins the bid and the payment made by the previous buyer is refunded. The bid price of the product is also updated.
 
-* Either because a deadline has passed or because of the seller's will, the offer ends and the amount of the current offer will be transferred to the seller. If there is a difference between the maximum bid and the purchase bid, it will be refunded to the buyer.
+In all previous situations, if the current bid price of the product is greater than or equal to the desirable price entered by the product owner when creating the listing, the listing ends.  The winner of the auction is the buyer who placed the highest bid.
 
-* The contract owner can change the publication cost.  This cost, associated with the publication creation process, is transfered to the owner address when this happens.
+* An external service is used to call the contract and check the end date of each active publication.  A cron or Gelato can be used for this purpose. This is outside the scope of the current development.
 
-* Sold and payded items need to be deleted to free space.  This use case is not covered at the moment.
+* The agreement between the buyer and the seller to deliver the product is outside the scope of this application.
+
+* The publication ends when the time runs out or the bid reaches the defined minimum price.  The seller must then decide to collect the bid. The bid amount is then transferred to the seller's account. If there is a difference to the maximum value entered by the buyer, this will be refunded to the buyer.
+
+* The smart contract's owner may change the publication fee.  This fee is associated with the process of creating the publication.  This value will be transferred to the owner's account.
+
+* After a certain period of time, finished publications must be deleted in order to free up space.  This functionality is not covered by this development.
 
 # Public Site URL
 
@@ -36,7 +39,7 @@ The DAPP is hosted in this URL: https://geruiz.github.io/
 
 # Screencast link
 
-In this URL: https://youtu.be/CgGyHLcedZI
+A screencast video is available at https://youtu.be/CgGyHLcedZI
 
 # Public Ethereum address for certification
 
