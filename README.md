@@ -31,20 +31,24 @@ In all of the offer cases, if the product mount is bigger than the achievable pr
 * Sold and payded items need to be deleted to free space.  This use case is not covered at the moment.
 
 # Public Site URL
+
 The DAPP is hosted in this URL: https://geruiz.github.io/
 
 # Screencast link
-TODO
+
+In this URL: https://youtu.be/CgGyHLcedZI
 
 # Public Ethereum address for certification
+
 0xC257e96F122d9999855c1A6e24bb0301eAA11Aea
 
 # Local run
 
 ## Dependencies
+
 To local compilation, need NodeJS (>=14) installed.  Download from http://nodejs.org
 
-Next, need truffle installed as global.
+Next, need truffle installed as global dependency.
 ```
 npm install -g truffle
 ```
@@ -55,6 +59,7 @@ npm install
 ```
 
 ## Compile
+
 Compile the contract with:
 ```
 truffle compile
@@ -65,6 +70,7 @@ npm run build
 ```
 
 ## Test
+
 The contract test can be executed with:
 ```
 truffle tests
@@ -75,28 +81,48 @@ npm test
 ```
 
 ## Local run
+
 This DAPP was developed using Ganache.  Download from here: https://www.trufflesuite.com/ganache and install in your system.
+Also was running with Truffle using the development network that provides.
 
-+ Start Ganache running the executable file.
+### Using Ganache as develop network
 
-+ Deploy the contract in Ganache using the next command:
-```
-truffle deploy --reset --network ganache
-```
+  + Start Ganache running the executable file.
+
+  + Deploy the contract in Ganache using the next command:
+  ```
+  truffle deploy --reset --network ganache
+  ```
+
+### Using Truffle as develop network
+
+  + Start Truffle in develop mode:
+  ```
+  truffle developt
+  ```
+
+  + In the console that Truffle provides, deploy the contracts:
+  ```
+  deploy --reset
+  ```
+
+### Start de develop server
 
 The contract migration process will generate the file `/js/contract_constant.js` with contract ABI and contract address.
 This file is used in the web site to allow interaction with the contract.
 
-+ Next start the frontend web app executing:
+Having one of the previous stages ready, only is need start the frontend web app executing:
+
 ```
 npm start
 ```
 
 The server listen the port 8000.
 
-Open a web browser with Metamask installed and navigate at page http://127.0.0.1:8000
+Open a web browser with Metamask installed and navigate at page http://127.0.0.1:8000. Configure Metamask to use the local network.
 
 ## Technical considerations
+
 This DAPP uses javascript libraries from CDN services.  You need an Internet connection to allow the browser to download this.
 There are:
   - JQuery
