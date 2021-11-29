@@ -15,7 +15,7 @@
     <div class="row" data-bind="visible: loaded">
         <!-- ko if: items().length == 0 -->
         <div class="col-lg-10 mx-auto">
-            There are not published products. 
+            There are no items to show.
         </div>
         <!-- /ko -->
         <div class="col-lg-10 mx-auto">
@@ -95,7 +95,7 @@
                             <label for="maxAmount" class="col-form-label">Maximum Amount (in wei)</label>
                         </div>
                         <div id="maxAmountHelpInline" class="form-text">
-                            Maximum amount to be paid.  In case of not winning, the difference value will be refunded.
+                            Maximum amount to be paid.  In case of winning, the difference value will be refunded.
                         </div>
                     </div>
                     <div class="col-4">
