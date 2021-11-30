@@ -4,42 +4,42 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-/// @title Contract that implements a market site using bets.
+/// @title Marketplace site implementation for bidding using this smart contract.
 /// @author Germán Ruiz 
-/// @notice This contract permits publish, bet and pay for products. 
+/// @notice This contract allows publish, bid and pay for items. 
 /// @dev Automatic finalization and delivery agreement is not implemented.
 contract MarketSite is Ownable {
 
   /// @notice item's state. Can be:
   ///    Published:  Created and ready to be offered.
-  ///    Offered: The item have one offer.
-  ///    Finished:  The ítem was finished because a timeout or its price is the expected by the owner.
-  ///    Payded:  Next to be finished, the item's owner reclaim the pay.
+  ///    Offered: The item have one bid.
+  ///    Finished:  The ítem publication is closed because the time runs out or its price is the expected by the owner.
+  ///    Payded:  The item's owner reclaimed the pay.
   /// @dev Adding a delivery agreement will need new states.
   enum State { Published, Offered, Finished, Payded }
 
-  /// @notice Actual best offert to buy the product.
-  /// @dev Consist of the buyer address and the max amount to paid (already in the contract wallet).
+  /// @notice The highest actual bid for the product.
+  /// @dev It consists of the address of the buyer and the maximum amount to be paid (already transferred to the contract wallet).
   struct Offert {
     address payable who;
     uint maxBet;
   }
 
-  /// @notice Information about the item (or product) in sell
+  /// @notice Information about the item (or product) to be sell
   struct Item {
-      // item file description in IPFS
+      // File containing the product description in IPFS
       string ipfsHash;
-      // owner's item
+      // Owner's address 
       address payable owner;
-      // actual value or initial value if don't have one
+      // Actual price. If not present, the initial price
       uint actualValue;
-      // maximum value expected by the owner
+      // Minimum price value expected by the owner
       uint maxValue;
-      // finish time
+      // Bid timeout
       uint finishDate;
-      // actual state of the item
+      // State of the item
       State state;
-      // actual offer or zero if don't have one
+      // Offer or zero if don't have one
       Offert actualOffer;
   }
 
@@ -47,89 +47,88 @@ contract MarketSite is Ownable {
   mapping (uint => Item) private items;
 
   /// @notice Items counts.
-  /// @dev The value coincides with the last one created.
+  /// @dev The value is equal to the last one created.
   uint public itemsCount;
 
-  /// @notice Publication cost, defined at contract creation moment.
+  /// @notice Publication fee, defined when the contract is created.
   uint private publicationCost; 
-  /// @notice Validity of publication (in days), defined at contract creation moment.
+  /// @notice Validity of publication (in days), defined when the contract is created.
   uint private publicationDays;
 
-  /// @notice Inform about a new item in the market.
-  /// @param itemId Item id to allow your access.
+  /// @notice Inform about a new item to be sold
+  /// @param itemId Item id to allow its access.
   event PublishedItem(uint itemId);
   
-  /// @notice Inform about a changed over a product. This is because a bet happened.
-  /// @param itemId Item id changed.
-  /// @param betValue New value to paid for the product.
-  /// @param betAddress Account address for the possible buyer.
+  /// @notice Report a change about the price of a product. This is because an offer has been made.
+  /// @param itemId Modified item id.
+  /// @param betValue New value to be paid for the product.
+  /// @param betAddress Account address for the new buyer.
   event ValueChanged(uint itemId, uint betValue, address betAddress);
 
-  /// @notice Inform about a shell was made.  This success when a bet value reached the
-  /// maximum value for this product.
-  /// @dev Also will be emit when add time finalization feature.
-  /// @param itemId Item id for the product.
+  /// @notice Reports a sale that has been made.  This happens when the offer price reaches the 
+  /// maximum value defined by the seller for this product.
+  /// @dev This event also will be triggered when the timeout functionality is implemented.
+  /// @param itemId Item id 
   event ItemSold(uint itemId);
 
-  /// @notice Inform about a item was paided.  This happens when the sale of a product is 
-  ///    paid to the seller.  If there is a difference with the final value, this is repaid
-  ///    to the buyer. 
-  /// @param itemId Item id for the product.
+  /// @notice This event occurs when the sales price of a product is paid to the seller.  If there 
+  /// is a difference with the final value, this difference is refunded to the buyer. 
+  /// @param itemId Item id.
   event ItemPaid(uint itemId);
 
-  /// @notice Inform about the change of the publication costs by the contract owner.
-  /// @param publicationCost The new publication cost.
+  /// @notice Notifies the modification of the publication fee by the contract owner.
+  /// @param publicationCost The new publication fee.
   event PublicationCost(uint publicationCost);
 
-  /// @notice Check if has enough found to made the operation.
-  modifier haveFounds(uint _value) {
-    require(msg.value >= _value, "Need more founds"); 
+  /// @notice Checks whether there are sufficient funds to carry out this operation.
+  modifier haveFunds(uint _value) {
+    require(msg.value >= _value, "Insufficient funds"); 
     _;
   }
 
-  /// @notice Check if exists the received item id
+  /// @notice Checks if the received item id exists
   modifier existsItem(uint _id) {
     require(0 < _id && _id <= itemsCount , "Inexistent item"); 
     _;
   }
 
-  /// @notice Check is the item is active
+  /// @notice Checks if the item is active
   modifier isPublished(uint _id) {
     require(items[_id].state == State.Published || items[_id].state == State.Offered, "Item is not offered"); 
     _;
   }
 
-  /// @notice Check is the item is sold
+  /// @notice Checks if the item is sold out
   modifier isSold(uint _id) {
-    require(items[_id].state == State.Finished, "Item isn't sold"); 
+    require(items[_id].state == State.Finished, "Item is unsold"); 
     _;
   }
 
-  /// @notice Check is the item owner is the sender
+  /// @notice Checks if the item owner is the sender
   modifier isItemOwner(uint _id) {
     require(items[_id].owner == msg.sender, "Isn't the item owner");
     _;
   }
 
-  /// @notice Check is the item owner is not the sender
+  /// @notice Checks if the item owner is not the sender
   modifier isNotItemOwner(uint _id) {
     require(items[_id].owner != msg.sender, "Is the item owner");
     _;
   }
 
-  /// @notice Check if the minor amount is less or equal than the maximun received.
+  /// @notice Checks if the min value is less or equal than the maximun value received.
   /// @param _minValue Minimun value
   /// @param _maxValue Maximum value
   modifier amountAreValids(uint _minValue, uint _maxValue) {
-    require(_minValue <= _maxValue, "The expected minor amount is not");
+    require(_minValue <= _maxValue, "Minimum value is not less or equal than maximum value");
     _;
   }
 
   /// @notice Contract constructor.
-  /// @param _publicationCost Value to transfer at owner when a publication is created. Can be 0.
-  /// @param _publicationDays Number of days a publication is active.
+  /// @param _publicationCost Value to be transfered to the contract owner when a publication is created. Can be 0.
+  /// @param _publicationDays Number of days that a publication will be active.
   constructor(uint _publicationCost, uint _publicationDays) {
-    require(_publicationDays > 0, "Publish days need be greater than zero");
+    require(_publicationDays > 0, "The number of days of publication of items must be greater than zero");
     itemsCount = 0;
     publicationCost = _publicationCost;
     publicationDays = 1 days * _publicationDays;
@@ -137,15 +136,15 @@ contract MarketSite is Ownable {
 
 
   /// @notice Create a new publication.
-  /// @param _ipfsHash File id wich one contains information about this product.
-  /// @param _baseValue Initial value to shell this product.
-  /// @param _expectedValue Expected maximum value.  If the bet raise this value, the 
-  ///    publication is marked as sold.
+  /// @param _ipfsHash File hash that contains information about the product.
+  /// @param _baseValue Initial price value of the product to be sell.
+  /// @param _expectedValue Expected price value. When the bid raises this value, the 
+  ///   item publication is marked as sold.
   function publishItem(string memory _ipfsHash, uint _baseValue, uint _expectedValue) public payable 
-    haveFounds(publicationCost)
+    haveFunds(publicationCost)
     amountAreValids(_baseValue, _expectedValue) {
 
-    // transfer publication cost to contract owner    
+    // transfer publication fee to contract owner    
     (bool success, ) = payable(address(owner())).call{value:publicationCost}("");
     require(success, "Transfer failed.");
 
@@ -168,9 +167,9 @@ contract MarketSite is Ownable {
     emit PublishedItem(itemsCount);
   }
 
-  /// @notice Allow access to a product information. Used to retrieve them.
+  /// @notice Returns the data of a publication. It is used to access this data.
   /// @param _itemId Item id
-  /// @dev Not export all item information, to keep hidden the max bet value.
+  /// @dev It does not export the current maximum bid value.
   function getItem(uint _itemId) public view 
     existsItem(_itemId)
     returns (uint itemId, string memory ipfsHash, address owner, uint finishDate,
@@ -186,51 +185,44 @@ contract MarketSite is Ownable {
       offerAddress = item.actualOffer.who;
   }
 
-  /**
-   * Create an offer for an item.
-   * Expects:
-   *     - The item id.
-   *     - The value to paid for it.
-   *     - The total transfer value is used as maximum value to paid.
-   */
-   /// @notice Create an offer over an item.
-   /// @param _itemId Item id to bet.
-   /// @param _value Actual value to paid for this product.
-   /// @dev Also, is used the message value as maximum value to paid.  This transaction 
-   ///    refund to the previus if the bet is better.
+   /// @notice Create an offer for an item.
+   /// @param _itemId Item id to be bid.
+   /// @param _value Actual price value to be paid for this product.
+   /// @dev This function uses the message value as maximum price value to be paid. This operation refunds
+   ///  the previous buyer if the new offer is higher than the previous one.
   function offerItem(uint _itemId, uint _value) public payable 
     existsItem(_itemId)
     isPublished(_itemId)
-    haveFounds(_value)
+    haveFunds(_value)
     isNotItemOwner(_itemId) {
 
       Item storage item = items[_itemId];
       bool success;
       require(item.actualValue < _value || 
-        // same value only permited as first offer
-        (item.actualValue == _value && item.state == State.Published), "Max value can not be below value");
+        // same price value only permited as first offer
+        (item.actualValue == _value && item.state == State.Published), "The new bid value cannot be lower than the current bid value");
 
       if (item.state == State.Published) {
-        // first offer.  The item don't have one
+        // first offer for the product.
         item.actualValue = _value;
         item.actualOffer.who = payable(msg.sender);
         item.actualOffer.maxBet = msg.value;
         item.state = State.Offered;
 
-        // transfer bet amount to the contract 
+        // transfer bid amount to the contract address
         (success, ) = address(this).call{value:msg.value}("");   
-        require(success, "Transfer failed.");
+        require(success, "The transfer has failed");
       }
       else {
         if (item.actualOffer.maxBet >= msg.value) {
           item.actualValue = msg.value;
 
-          // Sender offer is below that existent one.  We returns their founds.
+          // Sender bid is below that the current one.  The funds will be returned to the buyer
           (success, ) = payable(msg.sender).call{value:msg.value}("");   
-          require(success, "Refund transfer failed.");
+          require(success, "The refund has failed");
         }
         else {
-          // offer change and refund
+          // There is a new higher bid
           address payable prevOwner = item.actualOffer.who;
           uint prevBet = item.actualOffer.maxBet;
 
@@ -238,12 +230,13 @@ contract MarketSite is Ownable {
           item.actualOffer.who = payable(msg.sender);
           item.actualOffer.maxBet = msg.value;
 
-          // transfer bet amount to the contract    
+          // transfer bid amount price to the contract    
           (success, ) = address(this).call{value:msg.value}("");
-          require(success, "Transfer failed.");
+          require(success, "The transfer has failed");
 
+          // Refunds to the previous buyer
           (success, ) = prevOwner.call{value:prevBet}("");
-          require(success, "Refund failed.");
+          require(success, "The refund has failed");
         }
       }
       emit ValueChanged(_itemId, item.actualValue, item.actualOffer.who);
@@ -253,53 +246,53 @@ contract MarketSite is Ownable {
       }
   }
 
-  /// @notice This allow reclaim the value payed for the product by the seller.
-  /// @param _itemId Item id sold.
+  /// @notice This function allows the seller to claim the value received from the sale of his product.
+  /// @param _itemId Item id.
   function claimFounds(uint _itemId) public 
     existsItem(_itemId)
     isSold(_itemId)
     isItemOwner(_itemId) {
 
-      // mark the item as payded
+      // mark the item as paid
       items[_itemId].state = State.Payded;
 
-      // transfer the mount to the owner
+      // transfers the amount paid for the item to the owner
       (bool success, ) = msg.sender.call{value:items[_itemId].actualValue}("");
-      require(success, "Transfer failed.");
+      require(success, "The transfer has failed");
 
-      // Refund the difference (if exists)
+      // returns the difference between the bid price and the maximum price paid (if applicable)
       uint diff = items[_itemId].actualOffer.maxBet - items[_itemId].actualValue;
       if (diff > 0) {
         (success, ) = items[_itemId].actualOffer.who.call{value: diff}("");
-        require(success, "Transfer failed.");
+        require(success, "The transfer has failed");
       }
       emit ItemPaid(_itemId);
   }
 
-  /// @notice Retrieve the publication cost
+  /// @notice Returns the publication fee
   function getPublicationCost() public view 
     returns (uint) {
       return publicationCost;
   }
 
-  /// @notice Allows change the publication cost
+  /// @notice Set a new value for the publication fee
   function setPublicationCost(uint _publicationCost) public
     onlyOwner() {
       publicationCost = _publicationCost;
       emit PublicationCost(_publicationCost);
   }
 
-  /// @notice Retrieve the publication duration (as seconds)
+  /// @notice Returns the expiration time of the publication (as seconds)
   function getPublicationDays() public view 
     returns (uint) {
       return publicationDays;
   }
 
   /// @notice Function to receive Ether. msg.data must be empty
-  /// @dev This allow move found to the contract.
+  /// @dev This allows funds to be moved to the contract.
   receive() external payable {}
 
   /// @notice Fallback function is called when msg.data is not empty
-  /// @dev This allow move found to the contract.
+  /// @dev This allows funds to be moved to the contract.
   fallback() external payable {}
 }

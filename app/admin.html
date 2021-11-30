@@ -9,7 +9,7 @@
     <!-- ko ifnot: isOwner -->
     <div class="row">
         <div class="col-lg-10 mx-auto">
-            Nothing to do here. Only the contract owner can do something.
+            Nothing to do here. Only the contract owner can perform administrative task.
         </div>
     </div>
     <!-- /ko -->
@@ -35,7 +35,7 @@
         <form data-bind="submit: changePublicationCost">
         <div class="row g-3">
             <div class="col-3">
-                <label for="publicationCost" class="col-form-label">Set publication cost</label>
+                <label for="publicationCost" class="col-form-label">Set publication fee</label>
             </div>
             <div class="col-6">
                 <input type="text" id="publicationCost" class="form-control" autocomplete="off" size="20" maxlength="50" data-bind="textInput: publicationCost">

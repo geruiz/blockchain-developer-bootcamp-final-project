@@ -8,11 +8,11 @@
     <div class="col-10 offset-1">
         <form id="entry" onsubmit="createPublication(event); return false;">
             <div class="mb-3 text-center">
-                <img id="image" src="./img/not-selected.png" width="360" height="360" />
+                <img id="image" src="./img/not-selected.png" width="260" height="260" />
             </div>
             <div class="mb-3 row">
                 <div class="col-4">
-                    <label for="formFile" class="form-label">Select one image</label>
+                    <label for="formFile" class="form-label">Select item picture</label>
                 </div>
                 <div class="col-8">
                     <input class="form-control" type="file" id="fileSelection" onchange="selectFile(event)">
@@ -36,7 +36,7 @@
             </div>
             <div class="mb-3 row">
                 <div class="col-4">
-                    <label for="initialValue" class="form-label">Initial Value (in wei)</label>
+                    <label for="initialValue" class="form-label">Initial Value to sell (in wei)</label>
                 </div>
                 <div class="col-8">
                     <input id="initialValue" type="number" class="form-control" size="30" maxlength="30" autocomplete="off" required/>
@@ -44,7 +44,7 @@
             </div>
             <div class="mb-3 row">
                 <div class="col-4">
-                    <label for="maxValue" class="form-label">Maximun Value (in wei)</label>
+                    <label for="maxValue" class="form-label">Minimum Value to sell (in wei)</label>
                 </div>
                 <div class="col-8">
                     <input id="maxValue" type="number" class="form-control" size="30" maxlength="30" autocomplete="off" required/>
