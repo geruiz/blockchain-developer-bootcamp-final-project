@@ -39,7 +39,7 @@ The DAPP is hosted in this URL: https://geruiz.github.io/
 
 # Screencast link
 
-A screencast video is available at https://youtu.be/CgGyHLcedZI
+A screencast video is available at https://youtu.be/xDTyMqzimLo
 
 # Public Ethereum address for certification
 

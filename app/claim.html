@@ -41,9 +41,9 @@
                             <span data-bind="text: $parent.compactAddress(item.offerAddress)"></span>
                        </p>
                        <!-- ko if: item.state == marketSite.State.Finished -->
-                       <a href="#" class="btn btn-primary" data-bind="click: $parent.claimFounds">Claim founds</a>
+                       <a href="#" class="btn btn-primary" data-bind="click: $parent.claimFounds">Claim funds</a>
                        <!-- /ko -->
-                       <span data-bind="if: item.state == marketSite.State.Payded">Already payded</span>
+                       <span data-bind="if: item.state == marketSite.State.Payded">Already paid</span>
                     </div>
                 </div>
             </li>

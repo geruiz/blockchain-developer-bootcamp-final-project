@@ -1,34 +1,34 @@
 # Contract security measures
 
 - SWC-134 Message call with hardcoded gas amount
-The contract use `.call{value:...}()` instead of `transfer()` or `send()` without fixed values.  
+The smart contract use `.call{value:...}()` instead of `transfer()` or `send()` without fixed values.  
 
 - SWC-118 Incorrect constructor name
-The contract has a correct constructor, wich one receive initialization params.
+The smart contract has a valid constructor and receives the initialisation parameters.
 
 - SWC-110 Assert violation
-The contract uses `requiere()` statement instead of `assert()` for check conditions.
+The smart contract uses `require()` statement instead of `assert()` for check conditions.
 
 - SWC-108 State variable default visibility
-All variables defined in the contract have their visibility specified.
+All variables defined in the smart contract have their visibility specified.
 
 - SWC-107 Reentrancy
-Prevee reentrancy doing state changes before transfer funds call is executed.  For example, when the bet amount is refund, this is made after the new owner assignment.  In `claimFounds` function, first is the state change and next the founds transferences.
+Prevent reentrancy by making state changes before the funds transfer call is executed.  For example, when the offer price is refunded to the previous buyer, this refund is made after the assignment of the new buyer.  In `claimFunds` function, first the change of state is made and then the transfer of funds takes place.
 
 - SWC-105 Unprotected Ether Withdrawal
-The are controls in the contract to ensure the correct transfer of funds. These actions can only be done by the right users.
+The are verifications in the smart contract to ensure the correct transfer of funds. These actions can only be done by the right users.
 
 - SWC-103 Floating Pragma
-The contract uses a specific compiler version.
+The smart contract uses a specific compiler version.
 
 - SWC-100 Function default visibility
-All functions defined in the contract have their visibility specified.
+All functions defined in the smart contract have their visibility specified.
 
 - Proper Use of Require, Assert and Revert 
-All functions that made contract changes use `requiere()` statements.
+All functions that make changes to the contract use `require()` statements.
 
 - Use Modifiers Only for Validation 
 The modifiers defined are used only for validation.
 
 - Checks-Effects-Interactions (Avoiding state changes after external calls)
-All external calls (use of `call{value:...}()` ) are after state changes.
+All external calls (use of `call{value:...}()`) are made after state changes are performed.
